@@ -98,11 +98,77 @@ def resize_img(img, desired_max, desired_min=None):
 
 
 #%%
+img_bg_path = files_bg_imgs[5]
+img_bg = cv2.imread(img_bg_path)
+img_bg = cv2.cvtColor(img_bg, cv2.COLOR_BGRRGB)
 
+img_bg_resized_1 = resize_img(img_bg, desired_max=1920, desired_min=None)
+img_bg_resized_2 = resize_img(img_bg, desired_max=1920, desired_min=1080)
 
+print("Shape of the original background image:", img_bg.shape)
+
+print("Shape of the resized background image (desired_max=1920, desired_min=None):", img_bg_resized_1.shape)
+print("Shape of the resized background image (desired_max=1920, desired_min=1080):", img_bg_resized_2.shape)
+
+fig, ax = plt.subplots(1, 2, figsize=(16, 7))
+ax[0].imshow(img_bg_resized_1)
+ax[0].set_title("Resized (desired_max=1920, desired_min=None)", fontsize=18)
+ax[1].imshow(img_bg_resized_2)
+ax[1].set_title("Resized (desired_max=1920, desired_min=1080):", fontsize=18)
+plt.show()
 
     
+#%% resing and transforming objects
+def resize_transform_obj(img, mask, longest_min, longest_max, transforms=False):
+    h, w = mask.shape[0], mask.shape[1]
     
+    longest, shortest = max(h, w), min(h, w)
+    longest_new = np.random.randint(longest_min, longest_max)
+    shortest_new = int(shortest * (longest_new/longest))
+    
+    if h > w:
+        h_new, w_new = longest_new, shortest_new
+    else:
+        h_new, w_new = shortest_new, longest_new
+        
+    transform_resize = A.Resize(h_new, w_new, interpolation=1, always_apply=False, p=1)
+    transformed_resized = transform_resize(image=img, mask=mask)
+    img_t = transformed_resized["image"]
+    mask_t = transformed_resized["mask"]
+    
+    if transforms:
+        transformed = transforms(image=img_t, mask=mask_t)
+        img_t = transformed["image"]
+        mask_t = transformed["mask"]
+        
+    return img_t, mask_t
+
+
+transforms_bg_obj = A.Compose([
+    A.RandomRotate90(p=1),
+    A.ColorJitter(brightness=0.3,
+                  contrast=0.3,
+                  saturation=0.3, 
+                  hue=0.07,
+                  always_apply=False,
+                  p=1
+                  ),
+    A.Blur(blur_limit=(3,15),
+           always_apply=False, p=0.5
+           )
+])
+
+transform_obj = A.Compose([
+    A.RandomRotate90(p=1),
+    A.RandomBrightnessContrast(brightness_limit=(-0.1, 0.2),
+                               contrast_limit=0.1, brightness_by_max=True,
+                               always_apply=False, p=1
+                               )
+])
+        
+        
+    
+         
         
     
      
