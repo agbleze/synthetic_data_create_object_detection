@@ -166,7 +166,19 @@ transform_obj = A.Compose([
                                )
 ])
         
-        
+#%%
+img_path = obj_dict[3]['images'][0]
+mask_path = obj_dict[3]['masks'][0]
+
+img, mask = get_img_and_mask(img_path, mask_path)        
+img_t, mask_t = resize_transform_obj(img, mask, longest_min=300,
+                                     longest_max=400,
+                                     transforms=transform_obj
+                                     )  
+print("Shape of the image of the transformed object:", img_t.shape)
+print("Shape of the transformed binary mask:", mask_t.shape)
+print("\n")
+  
     
          
         
