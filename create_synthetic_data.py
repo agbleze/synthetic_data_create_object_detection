@@ -158,9 +158,8 @@ transforms_bg_obj = A.Compose([
            )
 ])
 
-transform_obj = A.Compose([
-    A.RandomRotate90(p=1),
-    A.RandomBrightnessContrast(brightness_limit=(-0.1, 0.2),
+transform_obj = A.Compose([A.RandomRotate90(p=1),
+                           A.RandomBrightnessContrast(brightness_limit=(-0.1, 0.2),
                                contrast_limit=0.1, brightness_by_max=True,
                                always_apply=False, p=1
                                )
@@ -183,13 +182,7 @@ print("\n")
          
         
     
-     
     
-    
-    
-    
-
-
 
 
 
