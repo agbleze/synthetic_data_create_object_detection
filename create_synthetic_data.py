@@ -110,12 +110,15 @@ print("Shape of the original background image:", img_bg.shape)
 print("Shape of the resized background image (desired_max=1920, desired_min=None):", img_bg_resized_1.shape)
 print("Shape of the resized background image (desired_max=1920, desired_min=1080):", img_bg_resized_2.shape)
 
-def plot(img_1, img_2):
+def plot(img_1, img_2,
+         ax0_title="Resized (desired_max=1920, desired_min=None)",
+         ax1_title="Resized (desired_max=1920, desired_min=1080):"
+         ):
     fig, ax = plt.subplots(1, 2, figsize=(16, 7))
     ax[0].imshow(img_1)
-    ax[0].set_title("Resized (desired_max=1920, desired_min=None)", fontsize=18)
+    ax[0].set_title(ax0_title, fontsize=18)
     ax[1].imshow(img_2)
-    ax[1].set_title("Resized (desired_max=1920, desired_min=1080):", fontsize=18)
+    ax[1].set_title(ax1_title, fontsize=18)
     plt.show()
 
 
@@ -181,8 +184,33 @@ print("Shape of the image of the transformed object:", img_t.shape)
 print("Shape of the transformed binary mask:", mask_t.shape)
 print("\n")
   
-    
+plot(img_1=img_t, mask_1=mask_t,
+     ax0_title="Transformed object"
+    ax1_title="Transformed binary mask"
+    )    
          
+### Adding object to background
+def add_obj(img_comp, mask_comp, img, mask, x, y, idx):
+    """
+    """
+    h_comp, w_comp = img_comp.shape[0], img_comp.shape[1]
+    h, w = img.shape[0], img.shape[1]
+    x = x - int(w/2)
+    y = y - int(h/2)
+    
+    mask_b = mask == 1
+    mask_rgb_b = np.stack([mask_b, mask_b, mask_b], axis=2)
+    
+    if x >= 0 and y >= 0:
+        h_part = h - max(0, y+h-h_comp)
+        w_part = w - max(0, x+w-w_comp)
+        
+        img_comp[y:y+h_part, x:x+w_part, :] = img_comp[y:y+h_part, x:x+w_part, :] * -mask_rgb_b[0:h_part, 0:w_part, :] + (img * mask_rgb_b)[0:h_part, 0:w_part, :]
+        mask_comp[y:y+h_part, x:x+w_part] = mask_comp[y:y+h_part, x:x+w_part] * -mask_b[0:h_part, 0:w_part] + (idx * mask_b)[0:h_part, 0:w_part]
+        
+    elif x < 0 and y < 0:
+        h_part = h + y
+        w_part = w + x
         
     
     
