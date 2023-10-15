@@ -110,14 +110,17 @@ print("Shape of the original background image:", img_bg.shape)
 print("Shape of the resized background image (desired_max=1920, desired_min=None):", img_bg_resized_1.shape)
 print("Shape of the resized background image (desired_max=1920, desired_min=1080):", img_bg_resized_2.shape)
 
-fig, ax = plt.subplots(1, 2, figsize=(16, 7))
-ax[0].imshow(img_bg_resized_1)
-ax[0].set_title("Resized (desired_max=1920, desired_min=None)", fontsize=18)
-ax[1].imshow(img_bg_resized_2)
-ax[1].set_title("Resized (desired_max=1920, desired_min=1080):", fontsize=18)
-plt.show()
+def plot(img_1, img_2):
+    fig, ax = plt.subplots(1, 2, figsize=(16, 7))
+    ax[0].imshow(img_1)
+    ax[0].set_title("Resized (desired_max=1920, desired_min=None)", fontsize=18)
+    ax[1].imshow(img_2)
+    ax[1].set_title("Resized (desired_max=1920, desired_min=1080):", fontsize=18)
+    plt.show()
 
-    
+
+plot(img_1=img_bg_resized_1, img_2=img_bg_resized_2)    
+
 #%% resing and transforming objects
 def resize_transform_obj(img, mask, longest_min, longest_max, transforms=False):
     h, w = mask.shape[0], mask.shape[1]
