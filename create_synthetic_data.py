@@ -212,6 +212,7 @@ def add_obj(img_comp, mask_comp, img, mask, x, y, idx):
         h_part = h + y
         w_part = w + x
         
+        img_comp[0:0+h_part, 0:0+w_part, :] = img_comp[0:0+h_part, 0:0+w_part, :] * ~mask_rgb_b[h-h_part:h, w-w_part:w, :] + (img * mask_rgb_b)[h-h_part:h, w-w_part:w, :]
     
     
 
