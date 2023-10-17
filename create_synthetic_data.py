@@ -217,4 +217,96 @@ def add_obj(img_comp, mask_comp, img, mask, x, y, idx):
     
 
 
+## adding objects to image
 
+def add_obj(img_comp, mask_comp, img, mask, x, y, idx):
+    '''
+    img_comp - composition of objects
+    mask_comp - composition of objects` masks
+    img - image of object
+    mask - binary mask of object
+    x, y - coordinates where center of img is placed
+    Function returns img_comp in CV2 RGB format + mask_comp
+    '''
+    h_comp, w_comp = img_comp.shape[0], img_comp.shape[1]
+    
+    h, w = img.shape[0], img.shape[1]
+    
+    x = x - int(w/2)
+    y = y - int(h/2)
+    
+    mask_b = mask == 1
+    mask_rgb_b = np.stack([mask_b, mask_b, mask_b], axis=2)
+    
+    if x >= 0 and y >= 0:
+    
+        h_part = h - max(0, y+h-h_comp) # h_part - part of the image which gets into the frame of img_comp along y-axis
+        w_part = w - max(0, x+w-w_comp) # w_part - part of the image which gets into the frame of img_comp along x-axis
+
+        img_comp[y:y+h_part, x:x+w_part, :] = img_comp[y:y+h_part, x:x+w_part, :] * ~mask_rgb_b[0:h_part, 0:w_part, :] + (img * mask_rgb_b)[0:h_part, 0:w_part, :]
+        mask_comp[y:y+h_part, x:x+w_part] = mask_comp[y:y+h_part, x:x+w_part] * ~mask_b[0:h_part, 0:w_part] + (idx * mask_b)[0:h_part, 0:w_part]
+        mask_added = mask[0:h_part, 0:w_part]
+        
+    elif x < 0 and y < 0:
+        
+        h_part = h + y
+        w_part = w + x
+        
+        img_comp[0:0+h_part, 0:0+w_part, :] = img_comp[0:0+h_part, 0:0+w_part, :] * ~mask_rgb_b[h-h_part:h, w-w_part:w, :] + (img * mask_rgb_b)[h-h_part:h, w-w_part:w, :]
+        mask_comp[0:0+h_part, 0:0+w_part] = mask_comp[0:0+h_part, 0:0+w_part] * ~mask_b[h-h_part:h, w-w_part:w] + (idx * mask_b)[h-h_part:h, w-w_part:w]
+        mask_added = mask[h-h_part:h, w-w_part:w]
+        
+    elif x < 0 and y >= 0:
+        
+        h_part = h - max(0, y+h-h_comp)
+        w_part = w + x
+        
+        img_comp[y:y+h_part, 0:0+w_part, :] = img_comp[y:y+h_part, 0:0+w_part, :] * ~mask_rgb_b[0:h_part, w-w_part:w, :] + (img * mask_rgb_b)[0:h_part, w-w_part:w, :]
+        mask_comp[y:y+h_part, 0:0+w_part] = mask_comp[y:y+h_part, 0:0+w_part] * ~mask_b[0:h_part, w-w_part:w] + (idx * mask_b)[0:h_part, w-w_part:w]
+        mask_added = mask[0:h_part, w-w_part:w]
+        
+    elif x >= 0 and y < 0:
+        
+        h_part = h + y
+        w_part = w - max(0, x+w-w_comp)
+        
+        img_comp[0:0+h_part, x:x+w_part, :] = img_comp[0:0+h_part, x:x+w_part, :] * ~mask_rgb_b[h-h_part:h, 0:w_part, :] + (img * mask_rgb_b)[h-h_part:h, 0:w_part, :]
+        mask_comp[0:0+h_part, x:x+w_part] = mask_comp[0:0+h_part, x:x+w_part] * ~mask_b[h-h_part:h, 0:w_part] + (idx * mask_b)[h-h_part:h, 0:w_part]
+        mask_added = mask[h-h_part:h, 0:w_part]
+    
+    return img_comp, mask_comp, mask_added
+
+
+
+
+
+img_bg_path = files_bg_imgs[26]
+img_bg = cv2.imread(img_bg_path)
+img_bg = cv2.cvtColor(img_bg, cv2.COLOR_BGR2RGB)
+
+h, w = img_bg.shape[0], img_bg.shape[1]
+mask_comp = np.zeros((h,w), dtype=np.uint8)
+
+img_path = obj_dict[3]['images'][0]
+mask_path = obj_dict[3]['masks'][0]
+img, mask = get_img_and_mask(img_path, mask_path)
+
+img_comp, mask_comp, _ = add_obj(img_bg, mask_comp, img, mask, x=800, y=600, idx=1)
+
+fig, ax = plt.subplots(1, 2, figsize=(16, 7))
+ax[0].imshow(img_comp)
+ax[0].set_title('Composition', fontsize=18)
+ax[1].imshow(mask_comp)
+ax[1].set_title('Composition mask', fontsize=18);
+
+
+
+
+
+img_comp, mask_comp, _ = add_obj(img_comp, mask_comp, img, mask, x=1350, y=1050, idx=2)
+
+fig, ax = plt.subplots(1, 2, figsize=(16, 7))
+ax[0].imshow(img_comp)
+ax[0].set_title('Composition', fontsize=18)
+ax[1].imshow(mask_comp)
+ax[1].set_title('Composition mask', fontsize=18);
