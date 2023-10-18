@@ -310,3 +310,178 @@ ax[0].imshow(img_comp)
 ax[0].set_title('Composition', fontsize=18)
 ax[1].imshow(mask_comp)
 ax[1].set_title('Composition mask', fontsize=18);
+
+
+
+
+## add noise to background
+
+
+def create_bg_with_noise(files_bg_imgs,
+                         files_bg_noise_imgs,
+                         files_bg_noise_masks,
+                         bg_max=1920,
+                         bg_min=1080,
+                         max_objs_to_add=60,
+                         longest_bg_noise_max=1000,
+                         longest_bg_noise_min=200,
+                         blank_bg=False):
+    
+    if blank_bg:
+        img_comp_bg = np.ones((bg_min, bg_max,3), dtype=np.uint8) * 255
+        mask_comp_bg = np.zeros((bg_min, bg_max), dtype=np.uint8)
+    else:    
+        idx = np.random.randint(len(files_bg_imgs))
+        img_bg = cv2.imread(files_bg_imgs[idx])
+        img_bg = cv2.cvtColor(img_bg, cv2.COLOR_BGR2RGB)
+        img_comp_bg = resize_img(img_bg, bg_max, bg_min)
+        mask_comp_bg = np.zeros((img_comp_bg.shape[0], img_comp_bg.shape[1]), dtype=np.uint8)
+
+    for i in range(1, np.random.randint(max_objs_to_add) + 2):
+
+        idx = np.random.randint(len(files_bg_noise_imgs))
+        img, mask = get_img_and_mask(files_bg_noise_imgs[idx], files_bg_noise_masks[idx])
+        x, y = np.random.randint(img_comp_bg.shape[1]), np.random.randint(img_comp_bg.shape[0])
+        img_t, mask_t = resize_transform_obj(img, mask, longest_bg_noise_min, longest_bg_noise_max, transforms=transforms_bg_obj)
+        img_comp_bg, _, _ = add_obj(img_comp_bg, mask_comp_bg, img_t, mask_t, x, y, i)
+        
+    return img_comp_bg
+
+
+
+
+## howfunc with bg set to white
+
+img_comp_bg = create_bg_with_noise(files_bg_imgs,
+                                   files_bg_noise_imgs,
+                                   files_bg_noise_masks,
+                                   max_objs_to_add=20,
+                                   blank_bg=True)
+plt.figure(figsize=(15,15))
+plt.imshow(img_comp_bg)
+
+
+
+
+## use random img foe bg
+img_comp_bg = create_bg_with_noise(files_bg_imgs,
+                                   files_bg_noise_imgs,
+                                   files_bg_noise_masks,
+                                   max_objs_to_add=20)
+plt.figure(figsize=(15,15))
+plt.imshow(img_comp_bg)
+
+
+
+## control degree of overlap
+
+def check_areas(mask_comp, obj_areas, overlap_degree=0.3):
+    obj_ids = np.unique(mask_comp).astype(np.uint8)[1:-1]
+    masks = mask_comp == obj_ids[:, None, None]
+    
+    ok = True
+    
+    if len(np.unique(mask_comp)) != np.max(mask_comp) + 1:
+        ok = False
+        return ok
+    
+    for idx, mask in enumerate(masks):
+        if np.count_nonzero(mask) / obj_areas[idx] < 1 - overlap_degree:
+            ok = False
+            break
+            
+    return ok 
+
+
+
+## ctreating synthetic composition
+
+def create_composition(img_comp_bg,
+                       max_objs=15,
+                       overlap_degree=0.2,
+                       max_attempts_per_obj=10):
+
+    img_comp = img_comp_bg.copy()
+    h, w = img_comp.shape[0], img_comp.shape[1]
+    mask_comp = np.zeros((h,w), dtype=np.uint8)
+    
+    obj_areas = []
+    labels_comp = []
+    num_objs = np.random.randint(max_objs) + 2
+    
+    i = 1
+    
+    for _ in range(1, num_objs):
+
+        obj_idx = np.random.randint(len(obj_dict)) + 1
+        
+        for _ in range(max_attempts_per_obj):
+
+            imgs_number = len(obj_dict[obj_idx]['images'])
+            idx = np.random.randint(imgs_number)
+            img_path = obj_dict[obj_idx]['images'][idx]
+            mask_path = obj_dict[obj_idx]['masks'][idx]
+            img, mask = get_img_and_mask(img_path, mask_path)
+
+            x, y = np.random.randint(w), np.random.randint(h)
+            longest_min = obj_dict[obj_idx]['longest_min']
+            longest_max = obj_dict[obj_idx]['longest_max']
+            img, mask = resize_transform_obj(img,
+                                             mask,
+                                             longest_min,
+                                             longest_max,
+                                             transforms=transforms_obj)
+
+            if i == 1:
+                img_comp, mask_comp, mask_added = add_obj(img_comp,
+                                                          mask_comp,
+                                                          img,
+                                                          mask,
+                                                          x,
+                                                          y,
+                                                          i)
+                obj_areas.append(np.count_nonzero(mask_added))
+                labels_comp.append(obj_idx)
+                i += 1
+                break
+            else:        
+                img_comp_prev, mask_comp_prev = img_comp.copy(), mask_comp.copy()
+                img_comp, mask_comp, mask_added = add_obj(img_comp,
+                                                          mask_comp,
+                                                          img,
+                                                          mask,
+                                                          x,
+                                                          y,
+                                                          i)
+                ok = check_areas(mask_comp, obj_areas, overlap_degree)
+                if ok:
+                    obj_areas.append(np.count_nonzero(mask_added))
+                    labels_comp.append(obj_idx)
+                    i += 1
+                    break
+                else:
+                    img_comp, mask_comp = img_comp_prev.copy(), mask_comp_prev.copy()        
+        
+    return img_comp, mask_comp, labels_comp, obj_areas
+
+
+
+#### synthetic composition
+
+img_comp, mask_comp, labels_comp, obj_areas = create_composition(img_comp_bg,
+                                                                 max_objs=15,
+                                                                 overlap_degree=0.2,
+                                                                 max_attempts_per_obj=10)
+plt.figure(figsize=(40,40))
+plt.imshow(img_comp)
+
+
+
+
+plt.figure(figsize=(40,40))
+plt.imshow(mask_comp)
+
+
+
+print("Labels (classes of the objects) on the composition in order of object's addition:", labels_comp)
+
