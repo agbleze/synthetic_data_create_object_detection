@@ -14,9 +14,14 @@ with open(".env", "w+") as env_file:
     env_file.write(f"CURRENT_DIR={CURRENT_DIR}")
 
 # %%
-def create_experiment_spec_file(target_class_map, tfrecords_path,
-                                image_directory_path, inference_config_images_dir,
-                                train_config_retrain_pruned_model
+def create_experiment_spec_file(target_class_map, dataset_config_tfrecords_path,
+                                dataset_config_image_directory_path, 
+                                inference_config_images_dir,
+                                training_config_retrain_pruned_model,
+                                inference_config_detection_image_output_dir,
+                                inference_config_labels_dump_dir,
+                                inference_config_model,
+                                
                                 )
 
 #%%
