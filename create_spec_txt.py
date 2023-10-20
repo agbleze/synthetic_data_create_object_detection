@@ -14,15 +14,36 @@ with open(".env", "w+") as env_file:
     env_file.write(f"CURRENT_DIR={CURRENT_DIR}")
 
 # %%
-def create_experiment_spec_file(target_class_map, dataset_config_tfrecords_path,
+def create_experiment_spec_file(target_class_mapping, dataset_config_tfrecords_path,
                                 dataset_config_image_directory_path, 
                                 inference_config_images_dir,
                                 training_config_retrain_pruned_model,
                                 inference_config_detection_image_output_dir,
                                 inference_config_labels_dump_dir,
-                                inference_config_model,
+                                inference_config_model
                                 
-                                )
+                                ):
+    pass
+
+
+def write_target_class_mapping(key: str, value: str):
+    """writes a target_class mapping parameter in the specification file.
+    Can be triggered from the terminal by using `faster_rcnn_runner --target_class_mapping --key "PUT KEY HERE" --value "PUT VALUE HERE" 
+
+    Args:
+        key (str): _description_
+        value (str): _description_
+    """
+    
+    pass
+
+def replace_default_experiment_spec_file(new_spec_file_path, existing_spec_file_path):
+    """_summary_
+
+    Args:
+        new_spec_file_path (_type_): _description_
+        existing_spec_file_path (_type_): _description_
+    """
 
 #%%
 with open("default_experiment_spec.cfg", "w+") as spec_file:
