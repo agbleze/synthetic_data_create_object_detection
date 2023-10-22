@@ -12,6 +12,11 @@ CURRENT_DIR = os.getcwd()
 # %%
 with open(".env", "w+") as env_file:
     env_file.write(f"CURRENT_DIR={CURRENT_DIR}")
+    
+    
+#%%
+with open(".env", "w+") as env_file:
+    env_file.write(f"CURRENT_DIR=changed_directory")    
 
 # %%
 def create_experiment_spec_file(target_class_mapping, dataset_config_tfrecords_path,
