@@ -51,6 +51,18 @@ def replace_default_experiment_spec_file(new_spec_file_path, existing_spec_file_
     """
 
 #%%
+
+target_class_text = """target_class_mapping {
+key: 'cyclist'
+value: 'cyclist'
+}
+"""
+
+with open("trial_test_spec.cfg", "w+") as f:
+    f.writelines(target_class_text)
+
+#%%
+
 with open("default_experiment_spec.cfg", "w+") as spec_file:
     spec_file.writelines(
 """
